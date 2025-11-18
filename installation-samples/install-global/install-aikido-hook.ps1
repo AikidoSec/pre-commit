@@ -8,7 +8,7 @@ $INSTALL_DIR = Join-Path $env:USERPROFILE ".local\bin"
 $GLOBAL_HOOKS_DIR = Join-Path $env:USERPROFILE ".git-hooks"
 $HOOK_SCRIPT = Join-Path $GLOBAL_HOOKS_DIR "pre-commit"
 
-Write-Host "🔍 Detecting platform and architecture..." -ForegroundColor Cyan
+Write-Host "Detecting platform and architecture..." -ForegroundColor Cyan
 
 # Detect architecture using environment variable
 $ARCH = $env:PROCESSOR_ARCHITECTURE
@@ -27,8 +27,8 @@ else {
 $DOWNLOAD_URL = "$BASE_URL/$PLATFORM/aikido-local-scanner.zip"
 $BINARY_NAME = "aikido-local-scanner.exe"
 
-Write-Host "📥 Downloading aikido-local-scanner for $PLATFORM..." -ForegroundColor Cyan
-Write-Host "   URL: $DOWNLOAD_URL" -ForegroundColor Gray
+Write-Host "Downloading aikido-local-scanner for $PLATFORM..." -ForegroundColor Cyan
+Write-Host "URL: $DOWNLOAD_URL" -ForegroundColor Gray
 
 # Create temporary directory
 $TMP_DIR = Join-Path $env:TEMP ([System.Guid]::NewGuid().ToString())
@@ -46,7 +46,7 @@ try {
         exit 1
     }
 
-    Write-Host "📦 Extracting binary..." -ForegroundColor Cyan
+    Write-Host "Extracting binary..." -ForegroundColor Cyan
     Expand-Archive -Path $zipPath -DestinationPath $TMP_DIR -Force
 
     # Create install directory if it doesn't exist
@@ -55,7 +55,7 @@ try {
     }
 
     # Move binary to install location
-    Write-Host "📁 Installing to $INSTALL_DIR\$BINARY_NAME..." -ForegroundColor Cyan
+    Write-Host "Installing to $INSTALL_DIR\$BINARY_NAME..." -ForegroundColor Cyan
     $sourceBinary = Join-Path $TMP_DIR $BINARY_NAME
     $destBinary = Join-Path $INSTALL_DIR $BINARY_NAME
     
@@ -91,7 +91,7 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
             $currentHooksPath = git config --global core.hooksPath
             if ($currentHooksPath -ne $globalHooksDirUnix) {
                 git config --global core.hooksPath $globalHooksDirUnix
-                Write-Host "✅ Configured git to use global hooks from: $GLOBAL_HOOKS_DIR" -ForegroundColor Green
+                Write-Host "Configured git to use global hooks from: $GLOBAL_HOOKS_DIR" -ForegroundColor Green
             }
             exit 0
         }
@@ -114,7 +114,7 @@ $aikidoSnippet
     git config --global core.hooksPath $globalHooksDirUnix
     
     Write-Host ""
-    Write-Host "✅ Installation complete!" -ForegroundColor Green
+    Write-Host "Installation complete!" -ForegroundColor Green
     Write-Host ""
     Write-Host "The aikido-local-scanner binary is installed at: $destBinary" -ForegroundColor White
     Write-Host "The global pre-commit hook is installed at: $HOOK_SCRIPT" -ForegroundColor White

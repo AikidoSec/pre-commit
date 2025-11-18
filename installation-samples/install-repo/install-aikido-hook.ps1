@@ -27,7 +27,7 @@ $DOWNLOAD_URL = "$BASE_URL/$PLATFORM/aikido-local-scanner.zip"
 $BINARY_NAME = "aikido-local-scanner.exe"
 
 Write-Host "Downloading aikido-local-scanner for $PLATFORM..." -ForegroundColor Cyan
-Write-Host " URL: $DOWNLOAD_URL" -ForegroundColor Gray
+Write-Host "URL: $DOWNLOAD_URL" -ForegroundColor Gray
 
 # Create temporary directory
 $TMP_DIR = Join-Path $env:TEMP ([System.Guid]::NewGuid().ToString())
