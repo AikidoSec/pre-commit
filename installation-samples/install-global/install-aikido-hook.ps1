@@ -39,7 +39,17 @@ try {
     $zipPath = Join-Path $TMP_DIR "aikido-local-scanner.zip"
     
     try {
-        Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $zipPath -UseBasicParsing
+        # Try BITS first (fastest and most reliable on Windows)
+        if (Get-Command Start-BitsTransfer -ErrorAction SilentlyContinue) {
+            Import-Module BitsTransfer
+            Start-BitsTransfer -Source $DOWNLOAD_URL -Destination $zipPath -ErrorAction Stop
+        }
+        else {
+            # Fallback to WebClient
+            $webClient = New-Object System.Net.WebClient
+            $webClient.DownloadFile($DOWNLOAD_URL, $zipPath)
+            if ($webClient) { $webClient.Dispose() }
+        }
     }
     catch {
         Write-Error "Failed to download file: $_"
@@ -85,7 +95,7 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
         
         # Check if aikido scanner is already in the hook
         if ($existingContent -match "Aikido local scanner") {
-            Write-Host "ℹ️ Aikido scanner already exists in global pre-commit hook. No changes made." -ForegroundColor Yellow
+            Write-Host "Aikido scanner already exists in global pre-commit hook. No changes made." -ForegroundColor Yellow
             
             # Ensure git is configured to use global hooks
             $currentHooksPath = git config --global core.hooksPath
