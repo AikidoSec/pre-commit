@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$VERSION = "v1.0.111"
+$VERSION = "v1.0.112"
 $BASE_URL = "https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/$VERSION"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".local\bin"
 $GLOBAL_HOOKS_DIR = Join-Path $env:USERPROFILE ".git-hooks"
@@ -23,7 +23,7 @@ else {
     exit 1
 }
 
-$DOWNLOAD_URL = "$BASE_URL/$PLATFORM/aikido-local-scanner.zip"
+$DOWNLOAD_URL = "$BASE_URL/$PLATFORM/aikido-pre-commit-local-scanner.zip"
 $BINARY_NAME = "aikido-local-scanner.exe"
 
 Write-Host "Downloading aikido-local-scanner for $PLATFORM..." -ForegroundColor Cyan

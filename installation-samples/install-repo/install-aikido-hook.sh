@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION="v1.0.111"
+VERSION="v1.0.112"
 BASE_URL="https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/${VERSION}"
 INSTALL_DIR="${HOME}/.local/bin"
 HOOK_SCRIPT='.git/hooks/pre-commit'
@@ -34,7 +34,7 @@ case "$OS" in
     echo "Unsupported OS: $OS" >&2; exit 1 ;;
 esac
 
-DOWNLOAD_URL="${BASE_URL}/${PLATFORM}/aikido-local-scanner.zip"
+DOWNLOAD_URL="${BASE_URL}/${PLATFORM}/aikido-pre-commit-local-scanner.zip"
 BINARY_NAME="aikido-local-scanner"
 
 if [ "${PLATFORM}" = "windows_X86_64" ]; then
