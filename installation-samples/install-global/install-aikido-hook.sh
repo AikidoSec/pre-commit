@@ -6,7 +6,6 @@ VERSION="v1.0.111"
 BASE_URL="https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/${VERSION}"
 INSTALL_DIR="${HOME}/.local/bin"
 GLOBAL_HOOKS_DIR="${HOME}/.git-hooks"
-HOOK_SCRIPT="${GLOBAL_HOOKS_DIR}/pre-commit"
 
 echo "🔍 Detecting platform and architecture..."
 
@@ -70,8 +69,22 @@ echo "📁 Installing to ${INSTALL_DIR}/${BINARY_NAME}..."
 mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
 chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
 
-# Create global hooks directory if it doesn't exist
-mkdir -p "${GLOBAL_HOOKS_DIR}"
+# Determine which hooks directory to use
+# If core.hooksPath is already set, use that; otherwise use our default
+CURRENT_HOOKS_PATH="$(git config --global core.hooksPath || echo '')"
+if [ -n "${CURRENT_HOOKS_PATH}" ]; then
+    ACTUAL_HOOKS_DIR="${CURRENT_HOOKS_PATH}"
+    echo "ℹ️  Using existing git hooks directory: ${ACTUAL_HOOKS_DIR}"
+else
+    ACTUAL_HOOKS_DIR="${GLOBAL_HOOKS_DIR}"
+    # Configure git to use global hooks directory
+    git config --global core.hooksPath "${GLOBAL_HOOKS_DIR}"
+    echo "✅ Configured git to use global hooks from: ${GLOBAL_HOOKS_DIR}"
+fi
+
+# Create hooks directory if it doesn't exist
+mkdir -p "${ACTUAL_HOOKS_DIR}"
+HOOK_SCRIPT="${ACTUAL_HOOKS_DIR}/pre-commit"
 
 AIKIDO_SNIPPET=$(cat << EOF
 # --- Aikido local scanner ---
@@ -88,14 +101,11 @@ if [ ! -f "${HOOK_SCRIPT}" ]; then
     echo "${AIKIDO_SNIPPET}" >> "${HOOK_SCRIPT}"
     chmod +x "${HOOK_SCRIPT}"
 
-    # Configure git to use global hooks directory
-    git config --global core.hooksPath "${GLOBAL_HOOKS_DIR}"
-
     echo "✅ Installation complete!"
     echo ""
     echo "The aikido-local-scanner binary is installed at: ${INSTALL_DIR}/${BINARY_NAME}"
     echo "The global pre-commit hook is installed at: ${HOOK_SCRIPT}"
-    echo "Git is configured to use global hooks from: ${GLOBAL_HOOKS_DIR}"
+    echo "Git is configured to use global hooks from: ${ACTUAL_HOOKS_DIR}"
     echo ""
     echo "The hook will now run automatically for all your Git repositories."
     exit 0
@@ -103,14 +113,7 @@ fi
 
 # Hook exists → check if Aikido is already inside
 if grep -q "Aikido local scanner" "${HOOK_SCRIPT}"; then
-    echo "ℹ️ Aikido scanner already present in global pre-commit hook. No changes made."
-    
-    # Ensure git is configured to use global hooks
-    CURRENT_HOOKS_PATH="$(git config --global core.hooksPath || echo '')"
-    if [ "${CURRENT_HOOKS_PATH}" != "${GLOBAL_HOOKS_DIR}" ]; then
-        git config --global core.hooksPath "${GLOBAL_HOOKS_DIR}"
-        echo "✅ Configured git to use global hooks from: ${GLOBAL_HOOKS_DIR}"
-    fi
+    echo "ℹ️  Aikido scanner already present in global pre-commit hook. No changes made."
     exit 0
 fi
 
@@ -119,17 +122,11 @@ echo "" >> "${HOOK_SCRIPT}"
 echo "${AIKIDO_SNIPPET}" >> "${HOOK_SCRIPT}"
 chmod +x "${HOOK_SCRIPT}"
 
-# Ensure git is configured to use global hooks
-CURRENT_HOOKS_PATH="$(git config --global core.hooksPath || echo '')"
-if [ "${CURRENT_HOOKS_PATH}" != "${GLOBAL_HOOKS_DIR}" ]; then
-    git config --global core.hooksPath "${GLOBAL_HOOKS_DIR}"
-fi
-
 echo "✅ Installation complete!"
 echo ""
 echo "The aikido-local-scanner binary is installed at: ${INSTALL_DIR}/${BINARY_NAME}"
 echo "The global pre-commit hook is installed at: ${HOOK_SCRIPT}"
-echo "Git is configured to use global hooks from: ${GLOBAL_HOOKS_DIR}"
+echo "Git is configured to use global hooks from: ${ACTUAL_HOOKS_DIR}"
 echo ""
 echo "The hook will now run automatically for all your Git repositories."
 

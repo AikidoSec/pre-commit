@@ -6,7 +6,6 @@ $VERSION = "v1.0.111"
 $BASE_URL = "https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/$VERSION"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".local\bin"
 $GLOBAL_HOOKS_DIR = Join-Path $env:USERPROFILE ".git-hooks"
-$HOOK_SCRIPT = Join-Path $GLOBAL_HOOKS_DIR "pre-commit"
 
 Write-Host "Detecting platform and architecture..." -ForegroundColor Cyan
 
@@ -71,14 +70,31 @@ try {
     
     Move-Item -Path $sourceBinary -Destination $destBinary -Force
 
-    # Create global hooks directory if it doesn't exist
-    if (-not (Test-Path $GLOBAL_HOOKS_DIR)) {
-        New-Item -ItemType Directory -Path $GLOBAL_HOOKS_DIR -Force | Out-Null
+    # Determine which hooks directory to use
+    # If core.hooksPath is already set, use that; otherwise use our default
+    $currentHooksPath = git config --global core.hooksPath 2>$null
+    if ($currentHooksPath) {
+        $ACTUAL_HOOKS_DIR = $currentHooksPath
+        Write-Host "Using existing git hooks directory: $ACTUAL_HOOKS_DIR" -ForegroundColor Yellow
     }
+    else {
+        $ACTUAL_HOOKS_DIR = $GLOBAL_HOOKS_DIR
+        # Configure git to use global hooks directory
+        $globalHooksDirUnix = $GLOBAL_HOOKS_DIR -replace '\\', '/'
+        git config --global core.hooksPath $globalHooksDirUnix
+        Write-Host "Configured git to use global hooks from: $GLOBAL_HOOKS_DIR" -ForegroundColor Green
+    }
+
+    # Create hooks directory if it doesn't exist
+    if (-not (Test-Path $ACTUAL_HOOKS_DIR)) {
+        New-Item -ItemType Directory -Path $ACTUAL_HOOKS_DIR -Force | Out-Null
+    }
+
+    $HOOK_SCRIPT = Join-Path $ACTUAL_HOOKS_DIR "pre-commit"
 
     # Convert Windows path to Unix-style path for the hook
     $destBinaryUnix = $destBinary -replace '\\', '/'
-    $globalHooksDirUnix = $GLOBAL_HOOKS_DIR -replace '\\', '/'
+    $actualHooksDirUnix = $ACTUAL_HOOKS_DIR -replace '\\', '/'
     
     # Create aikido snippet
     $aikidoSnippet = @"
@@ -96,13 +112,6 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
         # Check if aikido scanner is already in the hook
         if ($existingContent -match "Aikido local scanner") {
             Write-Host "Aikido scanner already exists in global pre-commit hook. No changes made." -ForegroundColor Yellow
-            
-            # Ensure git is configured to use global hooks
-            $currentHooksPath = git config --global core.hooksPath
-            if ($currentHooksPath -ne $globalHooksDirUnix) {
-                git config --global core.hooksPath $globalHooksDirUnix
-                Write-Host "Configured git to use global hooks from: $GLOBAL_HOOKS_DIR" -ForegroundColor Green
-            }
             exit 0
         }
         
@@ -120,15 +129,12 @@ $aikidoSnippet
 
     Set-Content -Path $HOOK_SCRIPT -Value $hookContent -NoNewline
     
-    # Configure git to use global hooks directory
-    git config --global core.hooksPath $globalHooksDirUnix
-    
     Write-Host ""
     Write-Host "Installation complete!" -ForegroundColor Green
     Write-Host ""
     Write-Host "The aikido-local-scanner binary is installed at: $destBinary" -ForegroundColor White
     Write-Host "The global pre-commit hook is installed at: $HOOK_SCRIPT" -ForegroundColor White
-    Write-Host "Git is configured to use global hooks from: $GLOBAL_HOOKS_DIR" -ForegroundColor White
+    Write-Host "Git is configured to use global hooks from: $ACTUAL_HOOKS_DIR" -ForegroundColor White
     Write-Host ""
     Write-Host "The hook will now run automatically for all your Git repositories." -ForegroundColor White
 }
