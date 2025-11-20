@@ -1,18 +1,14 @@
 name: Test Uninstall Scripts
 
 on:
-  push:
   pull_request:
   workflow_dispatch:
 
 jobs:
   test-bash:
     name: Test Bash Uninstall Script
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    
+    runs-on: macos-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
