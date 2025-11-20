@@ -20,7 +20,7 @@ jobs:
         run: npm install -g bats
       
       - name: Install BATS helper libraries
-        working-directory: installation-samples/install-global
+        working-directory: installation-samples/install-global/tests
         run: |
           mkdir -p test_helper
           git clone --depth 1 https://github.com/bats-core/bats-support.git test_helper/bats-support
