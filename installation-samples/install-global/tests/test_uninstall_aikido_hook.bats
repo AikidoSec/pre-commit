@@ -28,8 +28,14 @@ setup() {
     cat > "${TEST_DIR}/bin/git" << 'EOF'
 #!/bin/bash
 if [ "$1" = "config" ] && [ "$2" = "--global" ] && [ "$3" = "core.hooksPath" ]; then
-    echo "${GIT_HOOKS_PATH}"
+    if [ -n "${GIT_HOOKS_PATH}" ]; then
+        echo "${GIT_HOOKS_PATH}"
+        exit 0
+    else
+        exit 1
+    fi
 fi
+exit 1
 EOF
     chmod +x "${TEST_DIR}/bin/git"
     export PATH="${TEST_DIR}/bin:${PATH}"
