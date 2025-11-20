@@ -20,7 +20,7 @@ setup() {
     export HOME="${TEST_HOME}"
     
     # Path to the script being tested
-    SCRIPT_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd)"
+    SCRIPT_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")/.." && pwd)"
     UNINSTALL_SCRIPT="${SCRIPT_DIR}/uninstall-aikido-hook.sh"
     
     # Mock git config command
