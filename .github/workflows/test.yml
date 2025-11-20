@@ -23,13 +23,13 @@ jobs:
       - name: Install BATS
         run: npm install -g bats
       
-      #- name: Install BATS helper libraries
-      #  working-directory: installation-samples/install-global
-      #  run: |
-      #    mkdir -p test_helper
-      #    git clone --depth 1 https://github.com/bats-core/bats-support.git test_helper/bats-support
-      #    git clone --depth 1 https://github.com/bats-core/bats-assert.git test_helper/bats-assert
-      #    git clone --depth 1 https://github.com/bats-core/bats-file.git test_helper/bats-file
+      - name: Install BATS helper libraries
+        working-directory: installation-samples/install-global
+        run: |
+          mkdir -p test_helper
+          git clone --depth 1 https://github.com/bats-core/bats-support.git test_helper/bats-support
+          git clone --depth 1 https://github.com/bats-core/bats-assert.git test_helper/bats-assert
+          git clone --depth 1 https://github.com/bats-core/bats-file.git test_helper/bats-file
       
       - name: Run BATS tests
         working-directory: installation-samples/install-global/tests
