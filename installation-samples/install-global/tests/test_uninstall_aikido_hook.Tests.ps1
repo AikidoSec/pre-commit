@@ -56,23 +56,22 @@ AfterAll {
     }
 }
 
-BeforeEach {
-    # Reset mocked hooks path before each test
-    $script:MockedHooksPath = $null
-    if (Test-Path env:MOCKED_HOOKS_PATH) {
-        Remove-Item env:MOCKED_HOOKS_PATH
-    }
-    
-    # Clean up test files
-    if (Test-Path $script:TestHooksDir) {
-        Get-ChildItem -Path $script:TestHooksDir -File | Remove-Item -Force
-    }
-    if (Test-Path $script:TestInstallDir) {
-        Get-ChildItem -Path $script:TestInstallDir -File | Remove-Item -Force
-    }
-}
-
 Describe "Uninstall-Aikido-Hook" {
+    BeforeEach {
+        # Reset mocked hooks path before each test
+        $script:MockedHooksPath = $null
+        if (Test-Path env:MOCKED_HOOKS_PATH) {
+            Remove-Item env:MOCKED_HOOKS_PATH
+        }
+        
+        # Clean up test files
+        if (Test-Path $script:TestHooksDir) {
+            Get-ChildItem -Path $script:TestHooksDir -File | Remove-Item -Force
+        }
+        if (Test-Path $script:TestInstallDir) {
+            Get-ChildItem -Path $script:TestInstallDir -File | Remove-Item -Force
+        }
+    }
     Context "When no global hooks path is configured" {
         It "Should exit successfully with informative message" {
             $script:MockedHooksPath = $null
