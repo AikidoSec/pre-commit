@@ -1,0 +1,51 @@
+name: Test Uninstall Scripts
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-bash:
+    name: Test Bash Uninstall Script
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+
+      - name: Install BATS
+        run: npm install -g bats
+      
+      - name: Install BATS helper libraries
+        working-directory: installation-samples/install-global/tests
+        run: |
+          mkdir -p test_helper
+          git clone --depth 1 https://github.com/bats-core/bats-support.git test_helper/bats-support
+          git clone --depth 1 https://github.com/bats-core/bats-assert.git test_helper/bats-assert
+          git clone --depth 1 https://github.com/bats-core/bats-file.git test_helper/bats-file
+      
+      - name: Run BATS tests
+        working-directory: installation-samples/install-global/tests
+        run: bats test_uninstall_aikido_hook.bats
+
+  test-powershell:
+    name: Test PowerShell Uninstall Script
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Pester
+        run: |
+          Install-Module -Name Pester -Force -SkipPublisherCheck -Scope CurrentUser
+      
+      - name: Run Pester tests
+        working-directory: installation-samples/install-global/tests
+        shell: pwsh
+        run: |
+          Invoke-Pester test_uninstall_aikido_hook.Tests.ps1 -Output Detailed
+
