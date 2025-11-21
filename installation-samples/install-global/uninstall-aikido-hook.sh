@@ -32,8 +32,12 @@ fi
 
 # Verify both markers exist before attempting removal
 # This prevents accidental deletion if the end marker is missing
-HAS_START_MARKER=$(grep -c "^# --- Aikido local scanner ---$" "${HOOK_SCRIPT}" || echo "0")
-HAS_END_MARKER=$(grep -c "^# --- End Aikido local scanner ---$" "${HOOK_SCRIPT}" || echo "0")
+HAS_START_MARKER=$(grep -c "^# --- Aikido local scanner ---$" "${HOOK_SCRIPT}" 2>/dev/null || true)
+HAS_END_MARKER=$(grep -c "^# --- End Aikido local scanner ---$" "${HOOK_SCRIPT}" 2>/dev/null || true)
+
+# Default to 0 if empty, ensure it's a number
+HAS_START_MARKER=${HAS_START_MARKER:-0}
+HAS_END_MARKER=${HAS_END_MARKER:-0}
 
 if [ "${HAS_START_MARKER}" -eq 0 ]; then
     echo "⚠️  Warning: Start marker not found. Aikido section may be malformed."
