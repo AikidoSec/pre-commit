@@ -66,6 +66,15 @@ Set-Content -Path $HOOK_SCRIPT -Value $cleanedContent -NoNewline
 
 Write-Host "Removed Aikido snippet from pre-commit hook." -ForegroundColor Green
 
+# Check if the file only contains a shebang line (e.g., #!/bin/sh)
+# Remove all whitespace and newlines, then check if it's just a shebang
+$trimmedContent = $cleanedContent -replace '\r?\n', '' -replace '^\s+', '' -replace '\s+$', ''
+if ($trimmedContent -match '^#!/bin/(sh|bash)$') {
+    Write-Host "Pre-commit hook is now empty. Removing hooksPath configuration..." -ForegroundColor Cyan
+    git config --global --unset core.hooksPath
+    Write-Host "Removed core.hooksPath configuration." -ForegroundColor Green
+}
+
 # Clean up the binary
 $BINARY_PATH = Join-Path $INSTALL_DIR $BINARY_NAME
 if (Test-Path $BINARY_PATH) {
@@ -79,7 +88,4 @@ else {
 
 Write-Host ""
 Write-Host "Uninstallation complete!" -ForegroundColor Green
-Write-Host ""
-Write-Host "Note: Git hook configuration (core.hooksPath) was not modified." -ForegroundColor White
-Write-Host "      If you want to remove it, run: git config --global --unset core.hooksPath" -ForegroundColor White
 

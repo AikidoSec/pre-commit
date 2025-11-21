@@ -74,6 +74,15 @@ CLEANED_CONTENT=$(awk '
 echo "${CLEANED_CONTENT}" > "${HOOK_SCRIPT}"
 echo "✅ Removed Aikido snippet from pre-commit hook."
 
+# Check if the file only contains a shebang line (e.g., #!/bin/sh)
+# Remove all leading/trailing whitespace and newlines, then check if it's just a shebang
+TRIMMED_CONTENT=$(echo "${CLEANED_CONTENT}" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if echo "${TRIMMED_CONTENT}" | grep -qE '^#!/bin/(sh|bash)$'; then
+    echo "🗑️  Pre-commit hook is now empty. Removing hooksPath configuration..."
+    git config --global --unset core.hooksPath
+    echo "✅ Removed core.hooksPath configuration."
+fi
+
 # Clean up the binary
 BINARY_PATH="${INSTALL_DIR}/${BINARY_NAME}"
 if [ -f "${BINARY_PATH}" ]; then
@@ -86,7 +95,4 @@ fi
 
 echo ""
 echo "✅ Uninstallation complete!"
-echo ""
-echo "Note: Git hook configuration (core.hooksPath) was not modified."
-echo "      If you want to remove it, run: git config --global --unset core.hooksPath"
 
