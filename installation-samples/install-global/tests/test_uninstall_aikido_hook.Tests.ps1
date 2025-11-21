@@ -31,9 +31,7 @@ BeforeAll {
     $mockGitCmd = Join-Path $script:MockBinDir "git.cmd"
     $gitCmdContent = @"
 @echo off
-if "%1"=="config" if "%2"=="--global" if "%3"=="--unset" if "%4"=="core.hooksPath" (
-    exit /b 0
-) else if "%1"=="config" if "%2"=="--global" if "%3"=="core.hooksPath" (
+if "%1"=="config" if "%2"=="--global" if "%3"=="core.hooksPath" (
     if defined MOCKED_HOOKS_PATH (
         echo %MOCKED_HOOKS_PATH%
         exit /b 0
@@ -255,7 +253,7 @@ echo "After"
             Set-Content -Path $hookFile -Value $content
             
             $output = & $script:UninstallScript *>&1
-            Write-Host "Output: $($output | Out-String)"
+                        Write-Host "Output: $($output | Out-String)"
             $LASTEXITCODE | Should -Be 0
             
             # Verify all Aikido sections are removed

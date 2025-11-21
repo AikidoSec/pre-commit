@@ -89,3 +89,4 @@ else {
 Write-Host ""
 Write-Host "Uninstallation complete!" -ForegroundColor Green
 
+exit 0
