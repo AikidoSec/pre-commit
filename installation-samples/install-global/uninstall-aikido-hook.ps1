@@ -35,8 +35,8 @@ if ($hookContent -notmatch "Aikido local scanner") {
 
 # Verify both markers exist before attempting removal
 # This prevents accidental deletion if the end marker is missing
-$hasStartMarker = ($hookContent -match '(?m)^# --- Aikido local scanner ---$')
-$hasEndMarker = ($hookContent -match '(?m)^# --- End Aikido local scanner ---$')
+$hasStartMarker = ($hookContent -match '(?m)^# --- Aikido local scanner ---\r?$')
+$hasEndMarker = ($hookContent -match '(?m)^# --- End Aikido local scanner ---\r?$')
 
 if (-not $hasStartMarker) {
     Write-Host "Warning: Start marker not found. Aikido section may be malformed." -ForegroundColor Yellow
