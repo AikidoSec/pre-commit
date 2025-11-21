@@ -24,17 +24,37 @@ setup() {
     UNINSTALL_SCRIPT="${SCRIPT_DIR}/uninstall-aikido-hook.sh"
     
     # Mock git config command
+    # Use absolute path to ensure we control which git is used
     mkdir -p "${TEST_DIR}/bin"
-    cat > "${TEST_DIR}/bin/git" << 'EOF'
-#!/bin/bash
+    cat > "${TEST_DIR}/bin/git" << 'EOFMOCK'
+#!/bin/sh
+# Mock git command for testing
+# Only handle the specific command we need: git config --global core.hooksPath
 if [ "$1" = "config" ] && [ "$2" = "--global" ] && [ "$3" = "core.hooksPath" ]; then
-    echo "${GIT_HOOKS_PATH}"
-    exit 0
+    # Read GIT_HOOKS_PATH from environment and output it
+    # If empty, exit with non-zero to simulate no config set
+    if [ -n "${GIT_HOOKS_PATH}" ]; then
+        echo "${GIT_HOOKS_PATH}"
+        exit 0
+    else
+        exit 1
+    fi
 fi
+# For any other git command, fail to prevent accidental real git usage
 exit 1
-EOF
+EOFMOCK
     chmod +x "${TEST_DIR}/bin/git"
+    
+    # Prepend to PATH to ensure our mock is found first
+    # Use absolute path to be extra safe
     export PATH="${TEST_DIR}/bin:${PATH}"
+    
+    # Verify the mock is in PATH and executable
+    if ! command -v git >/dev/null 2>&1 || [ "$(command -v git)" != "${TEST_DIR}/bin/git" ]; then
+        echo "Warning: Mock git may not be in PATH correctly" >&2
+        echo "Expected: ${TEST_DIR}/bin/git" >&2
+        echo "Found: $(command -v git 2>/dev/null || echo 'not found')" >&2
+    fi
 }
 
 # Teardown: Clean up after each test
@@ -43,16 +63,26 @@ teardown() {
     unset GIT_HOOKS_PATH
 }
 
+@test "mock git command is working" {
+    # Verify our mock git is being used
+    GIT_HOOKS_PATH="${TEST_HOOKS_DIR}"
+    run git config --global core.hooksPath
+    assert_success
+    assert_output "${TEST_HOOKS_DIR}"
+}
+
 @test "exits successfully when no global hooks path is configured" {
     GIT_HOOKS_PATH=""
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     assert_output --partial "No global hooks path configured"
 }
 
 @test "exits successfully when pre-commit hook file does not exist" {
     GIT_HOOKS_PATH="${TEST_HOOKS_DIR}"
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     assert_output --partial "Pre-commit hook file not found"
 }
@@ -63,7 +93,8 @@ teardown() {
 #!/bin/sh
 echo "Some other hook content"
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     assert_output --partial "Aikido scanner not found in pre-commit hook"
 }
@@ -75,7 +106,8 @@ EOF
 # --- End Aikido local scanner ---
 echo "Malformed hook"
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_failure
     assert_output --partial "Start marker not found"
 }
@@ -87,7 +119,8 @@ EOF
 # --- Aikido local scanner ---
 echo "Aikido content without end marker"
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_failure
     assert_output --partial "End marker"
     assert_output --partial "is missing"
@@ -103,7 +136,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 "/path/to/binary" pre-commit-scan "$REPO_ROOT"
 # --- End Aikido local scanner ---
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     assert_output --partial "Removed Aikido snippet"
     
@@ -124,7 +158,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 # --- End Aikido local scanner ---
 echo "After Aikido"
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     
     # Verify Aikido content is removed but other content remains
@@ -145,7 +180,8 @@ EOF
     echo "fake binary" > "${TEST_INSTALL_DIR}/aikido-local-scanner"
     chmod +x "${TEST_INSTALL_DIR}/aikido-local-scanner"
     
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     assert_output --partial "Removed aikido-local-scanner binary"
     
@@ -160,7 +196,8 @@ EOF
 # --- Aikido local scanner ---
 # --- End Aikido local scanner ---
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     assert_output --partial "Binary not found"
 }
@@ -178,7 +215,8 @@ echo "Second Aikido"
 # --- End Aikido local scanner ---
 echo "After"
 EOF
-    run bash "${UNINSTALL_SCRIPT}"
+    # Explicitly set PATH to ensure mock is used
+    run env PATH="${TEST_DIR}/bin:${PATH}" bash "${UNINSTALL_SCRIPT}"
     assert_success
     
     # Verify all Aikido sections are removed
