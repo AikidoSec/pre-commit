@@ -23,12 +23,12 @@ setup() {
     SCRIPT_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")/.." && pwd)"
     ORIGINAL_SCRIPT="${SCRIPT_DIR}/uninstall-aikido-hook.sh"
     
-    # Create a modified version of the script with lines 11-12 replaced
+    # Create a modified version of the script with lines 11-12 replaced and line 82 removed
     UNINSTALL_SCRIPT="${TEST_DIR}/uninstall-aikido-hook-modified.sh"
     {
         head -n 10 "${ORIGINAL_SCRIPT}"
         echo "CURRENT_HOOKS_PATH=${TEST_HOOKS_DIR}"
-        tail -n +12 "${ORIGINAL_SCRIPT}"
+        tail -n +12 "${ORIGINAL_SCRIPT}" | sed '/git config --global --unset core.hooksPath/d'
     } > "${UNINSTALL_SCRIPT}"
     chmod +x "${UNINSTALL_SCRIPT}"
 }
