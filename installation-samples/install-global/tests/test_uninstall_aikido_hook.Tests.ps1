@@ -73,29 +73,29 @@ Describe "Uninstall-Aikido-Hook" {
         }
     }
     Context "When no global hooks path is configured" {
-        It "Should exit successfully with informative message" {
+        It "Should exit successfully with informative message when no global hooks path is configured" {
             $script:MockedHooksPath = $null
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "No global hooks path configured"
+            ($output | Out-String) | Should -Match "No global hooks path configured"
         }
     }
     
     Context "When pre-commit hook file does not exist" {
-        It "Should exit successfully with informative message" {
+        It "Should exit successfully with informative message when pre-commit hook file does not exist" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "Pre-commit hook file not found"
+            ($output | Out-String) | Should -Match "Pre-commit hook file not found"
         }
     }
     
     Context "When Aikido snippet is not in hook" {
-        It "Should exit successfully with informative message" {
+        It "Should exit successfully with informative message when Aikido snippet is not in hook" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -103,12 +103,12 @@ Describe "Uninstall-Aikido-Hook" {
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "Aikido scanner not found"
+            ($output | Out-String) | Should -Match "Aikido scanner not found"
         }
     }
     
     Context "When start marker is missing" {
-        It "Should exit with error" {
+        It "Should exit with error when start marker is missing" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -116,12 +116,12 @@ Describe "Uninstall-Aikido-Hook" {
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 1
-            $output | Should -Match "Start marker not found"
+            ($output | Out-String) | Should -Match "Start marker not found"
         }
     }
     
     Context "When end marker is missing" {
-        It "Should exit with error" {
+        It "Should exit with error when end marker is missing" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -129,13 +129,13 @@ Describe "Uninstall-Aikido-Hook" {
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 1
-            $output | Should -Match "End marker"
-            $output | Should -Match "is missing"
+            ($output | Out-String) | Should -Match "End marker"
+            ($output | Out-String) | Should -Match "is missing"
         }
     }
     
     Context "When removing Aikido snippet from hook with only Aikido content" {
-        It "Should remove the snippet successfully" {
+        It "Should remove the snippet successfully when removing Aikido snippet from hook with only Aikido content" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -151,7 +151,7 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "Removed Aikido snippet"
+            ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
             # Verify the file only contains shebang
             $remainingContent = Get-Content -Path $hookFile -Raw
@@ -160,7 +160,7 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
     }
     
     Context "When removing Aikido snippet while preserving other hook content" {
-        It "Should remove only the Aikido section" {
+        It "Should remove only the Aikido section when removing Aikido snippet while preserving other hook content" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -178,7 +178,7 @@ echo "After Aikido"
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "Removed Aikido snippet"
+            ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
             # Verify Aikido content is removed but other content remains
             $remainingContent = Get-Content -Path $hookFile -Raw
@@ -189,7 +189,7 @@ echo "After Aikido"
     }
     
     Context "When binary file exists" {
-        It "Should remove the binary file" {
+        It "Should remove the binary file when binary file exists" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -205,7 +205,7 @@ echo "After Aikido"
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "Removed aikido-local-scanner binary"
+            ($output | Out-String) | Should -Match "Removed aikido-local-scanner binary"
             
             # Verify binary is removed
             Test-Path $binaryFile | Should -Be $false
@@ -213,7 +213,7 @@ echo "After Aikido"
     }
     
     Context "When binary file does not exist" {
-        It "Should handle missing binary gracefully" {
+        It "Should handle missing binary gracefully when binary file does not exist" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
@@ -226,12 +226,12 @@ echo "After Aikido"
             
             $output = & $script:UninstallScript 2>&1
             $LASTEXITCODE | Should -Be 0
-            $output | Should -Match "Binary not found"
+            ($output | Out-String) | Should -Match "Binary not found"
         }
     }
     
     Context "When multiple Aikido sections exist" {
-        It "Should remove all Aikido sections" {
+        It "Should remove all Aikido sections when multiple Aikido sections exist" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
