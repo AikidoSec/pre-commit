@@ -40,7 +40,7 @@ $hasEndMarker = ($hookContent -match '(?m)^# --- End Aikido local scanner ---\r?
 
 if (-not $hasStartMarker) {
     Write-Host "Warning: Start marker not found. Aikido section may be malformed." -ForegroundColor Yellow
-    Write-Host "AAborting uninstall - please manually clean up the hook file." -ForegroundColor Red
+    Write-Host "Aborting uninstall - please manually clean up the hook file." -ForegroundColor Red
     exit 1
 }
 
