@@ -77,7 +77,7 @@ Describe "Uninstall-Aikido-Hook" {
             $script:MockedHooksPath = $null
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "No global hooks path configured"
         }
@@ -88,7 +88,7 @@ Describe "Uninstall-Aikido-Hook" {
             $script:MockedHooksPath = $script:TestHooksDir
             $env:MOCKED_HOOKS_PATH = $script:MockedHooksPath
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Pre-commit hook file not found"
         }
@@ -101,7 +101,7 @@ Describe "Uninstall-Aikido-Hook" {
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
             Set-Content -Path $hookFile -Value "#!/bin/sh`necho 'Some other hook content'"
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Aikido scanner not found"
         }
@@ -114,7 +114,7 @@ Describe "Uninstall-Aikido-Hook" {
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
             Set-Content -Path $hookFile -Value "# --- End Aikido local scanner ---`necho 'Malformed hook'"
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 1
             ($output | Out-String) | Should -Match "Start marker not found"
         }
@@ -127,7 +127,7 @@ Describe "Uninstall-Aikido-Hook" {
             $hookFile = Join-Path $script:TestHooksDir "pre-commit"
             Set-Content -Path $hookFile -Value "# --- Aikido local scanner ---`necho 'Aikido content without end marker'"
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 1
             ($output | Out-String) | Should -Match "End marker"
             ($output | Out-String) | Should -Match "is missing"
@@ -149,7 +149,7 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
 "@
             Set-Content -Path $hookFile -Value $content
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
@@ -176,7 +176,7 @@ echo "After Aikido"
 "@
             Set-Content -Path $hookFile -Value $content
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
@@ -203,7 +203,7 @@ echo "After Aikido"
             $binaryFile = Join-Path $script:TestInstallDir "aikido-local-scanner.exe"
             Set-Content -Path $binaryFile -Value "fake binary"
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed aikido-local-scanner binary"
             
@@ -224,7 +224,7 @@ echo "After Aikido"
 "@
             Set-Content -Path $hookFile -Value $content
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Binary not found"
         }
@@ -248,7 +248,7 @@ echo "After"
 "@
             Set-Content -Path $hookFile -Value $content
             
-            $output = & $script:UninstallScript 2>&1
+            $output = & $script:UninstallScript *>&1
             $LASTEXITCODE | Should -Be 0
             
             # Verify all Aikido sections are removed
