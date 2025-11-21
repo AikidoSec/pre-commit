@@ -28,7 +28,7 @@ setup() {
     {
         head -n 10 "${ORIGINAL_SCRIPT}"
         echo "CURRENT_HOOKS_PATH=${TEST_HOOKS_DIR}"
-        tail -n +13 "${ORIGINAL_SCRIPT}"
+        tail -n +12 "${ORIGINAL_SCRIPT}"
     } > "${UNINSTALL_SCRIPT}"
     chmod +x "${UNINSTALL_SCRIPT}"
 }
@@ -98,13 +98,13 @@ EOF
 @test "removes Aikido snippet while preserving other hook content" {
     cat > "${TEST_HOOKS_DIR}/pre-commit" << 'EOF'
 #!/bin/sh
-echo "Before Aikido"
+echo "Preserved content before hook"
 # --- Aikido local scanner ---
 [ -x "/path/to/binary" ] || { echo "Missing"; exit 1; }
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 "/path/to/binary" pre-commit-scan "$REPO_ROOT"
 # --- End Aikido local scanner ---
-echo "After Aikido"
+echo "Preserved content after hook"
 EOF
     run bash "${UNINSTALL_SCRIPT}"
     assert_success
@@ -113,8 +113,8 @@ EOF
     content=$(cat "${TEST_HOOKS_DIR}/pre-commit")
     assert_output --partial "Removed Aikido snippet"
     assert_equal "$(echo "$content" | grep -c "Aikido")" "0"
-    assert_equal "$(echo "$content" | grep -c "Before Aikido")" "1"
-    assert_equal "$(echo "$content" | grep -c "After Aikido")" "1"
+    assert_equal "$(echo "$content" | grep -c "Preserved content before hook")" "1"
+    assert_equal "$(echo "$content" | grep -c "Preserved content after hook")" "1"
 }
 
 @test "removes binary file when it exists" {
