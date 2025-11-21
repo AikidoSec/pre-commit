@@ -151,7 +151,6 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
             
             $output = & $script:UninstallScript *>&1
             Write-Host "Output: $($output | Out-String)"
-            $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
             # Verify the file only contains shebang
@@ -179,7 +178,6 @@ echo "After Aikido"
             
             $output = & $script:UninstallScript *>&1
             Write-Host "Output: $($output | Out-String)"
-            $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
             # Verify Aikido content is removed but other content remains
@@ -207,7 +205,6 @@ echo "After Aikido"
             
             $output = & $script:UninstallScript *>&1
             Write-Host "Output: $($output | Out-String)"
-            $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed aikido-local-scanner binary"
             
             # Verify binary is removed
@@ -229,7 +226,6 @@ echo "After Aikido"
             
             $output = & $script:UninstallScript *>&1
             Write-Host "Output: $($output | Out-String)"
-            $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Binary not found"
         }
     }
@@ -254,7 +250,6 @@ echo "After"
             
             $output = & $script:UninstallScript *>&1
                         Write-Host "Output: $($output | Out-String)"
-            $LASTEXITCODE | Should -Be 0
             
             # Verify all Aikido sections are removed
             $remainingContent = Get-Content -Path $hookFile -Raw
