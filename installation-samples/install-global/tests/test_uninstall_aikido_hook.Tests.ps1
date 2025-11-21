@@ -150,6 +150,7 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
             Set-Content -Path $hookFile -Value $content
             
             $output = & $script:UninstallScript *>&1
+            Write-Host "Output: $($output | Out-String)"
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
@@ -177,6 +178,7 @@ echo "After Aikido"
             Set-Content -Path $hookFile -Value $content
             
             $output = & $script:UninstallScript *>&1
+            Write-Host "Output: $($output | Out-String)"
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed Aikido snippet"
             
@@ -204,6 +206,7 @@ echo "After Aikido"
             Set-Content -Path $binaryFile -Value "fake binary"
             
             $output = & $script:UninstallScript *>&1
+            Write-Host "Output: $($output | Out-String)"
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Removed aikido-local-scanner binary"
             
@@ -225,6 +228,7 @@ echo "After Aikido"
             Set-Content -Path $hookFile -Value $content
             
             $output = & $script:UninstallScript *>&1
+            Write-Host "Output: $($output | Out-String)"
             $LASTEXITCODE | Should -Be 0
             ($output | Out-String) | Should -Match "Binary not found"
         }
@@ -249,6 +253,7 @@ echo "After"
             Set-Content -Path $hookFile -Value $content
             
             $output = & $script:UninstallScript *>&1
+            Write-Host "Output: $($output | Out-String)"
             $LASTEXITCODE | Should -Be 0
             
             # Verify all Aikido sections are removed
