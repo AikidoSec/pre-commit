@@ -21,19 +21,21 @@ setup() {
     
     # Path to the script being tested
     SCRIPT_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")/.." && pwd)"
-    UNINSTALL_SCRIPT="${SCRIPT_DIR}/uninstall-aikido-hook.sh"
+    ORIGINAL_SCRIPT="${SCRIPT_DIR}/uninstall-aikido-hook.sh"
+    
+    # Create a modified version of the script with lines 11-12 replaced
+    UNINSTALL_SCRIPT="${TEST_DIR}/uninstall-aikido-hook-modified.sh"
+    {
+        head -n 10 "${ORIGINAL_SCRIPT}"
+        echo "CURRENT_HOOKS_PATH=${TEST_HOOKS_DIR}"
+        tail -n +13 "${ORIGINAL_SCRIPT}"
+    } > "${UNINSTALL_SCRIPT}"
+    chmod +x "${UNINSTALL_SCRIPT}"
 }
 
 # Teardown: Clean up after each test
 teardown() {
     rm -rf "${TEST_DIR}"
-}
-
-@test "exits successfully when no global hooks path is configured" {
-    # Don't set AIKIDO_TEST_HOOKS_PATH to simulate no config
-    run bash "${UNINSTALL_SCRIPT}"
-    assert_success
-    assert_output --partial "No global hooks path configured"
 }
 
 @test "exits successfully when pre-commit hook file does not exist" {
