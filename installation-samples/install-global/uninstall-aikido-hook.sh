@@ -14,8 +14,7 @@ if [ -z "${CURRENT_HOOKS_PATH}" ]; then
     exit 0
 fi
 
-ACTUAL_HOOKS_DIR="${CURRENT_HOOKS_PATH}"
-HOOK_SCRIPT="${ACTUAL_HOOKS_DIR}/pre-commit"
+HOOK_SCRIPT="${CURRENT_HOOKS_PATH}/pre-commit"
 
 echo "📁 Checking for pre-commit hook at: ${HOOK_SCRIPT}"
 

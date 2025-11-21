@@ -14,8 +14,7 @@ if (-not $currentHooksPath) {
     exit 0
 }
 
-$ACTUAL_HOOKS_DIR = $currentHooksPath
-$HOOK_SCRIPT = Join-Path $ACTUAL_HOOKS_DIR "pre-commit"
+$HOOK_SCRIPT = Join-Path $currentHooksPath "pre-commit"
 
 Write-Host "Checking for pre-commit hook at: $HOOK_SCRIPT" -ForegroundColor Cyan
 
