@@ -1,5 +1,9 @@
 #!/usr/bin/env pwsh
 
+param(
+    [switch]$DownloadOnly
+)
+
 $ErrorActionPreference = "Stop"
 
 $VERSION = "v1.0.112"
@@ -69,6 +73,17 @@ try {
     $destBinary = Join-Path $INSTALL_DIR $BINARY_NAME
     
     Move-Item -Path $sourceBinary -Destination $destBinary -Force
+
+    # If download-only mode, exit after installing the binary
+    if ($DownloadOnly) {
+        Write-Host ""
+        Write-Host "Download complete!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "The aikido-local-scanner binary is installed at: $destBinary" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Note: Git hooks were not configured. Use without -DownloadOnly to set up hooks." -ForegroundColor Yellow
+        exit 0
+    }
 
     # Determine which hooks directory to use
     # If core.hooksPath is already set, use that; otherwise use our default
