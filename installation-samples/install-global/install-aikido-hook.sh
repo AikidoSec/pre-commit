@@ -2,6 +2,22 @@
 
 set -e
 
+# Parse arguments
+DOWNLOAD_ONLY=false
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --download-only)
+            DOWNLOAD_ONLY=true
+            shift
+            ;;
+        *)
+            echo "Unknown argument: $1" >&2
+            echo "Usage: $0 [--download-only]" >&2
+            exit 1
+            ;;
+    esac
+done
+
 VERSION="v1.0.112"
 BASE_URL="https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/${VERSION}"
 INSTALL_DIR="${HOME}/.local/bin"
@@ -68,6 +84,16 @@ mkdir -p "${INSTALL_DIR}"
 echo "📁 Installing to ${INSTALL_DIR}/${BINARY_NAME}..."
 mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
 chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
+
+# If download-only mode, exit after installing the binary
+if [ "${DOWNLOAD_ONLY}" = true ]; then
+    echo "✅ Download complete!"
+    echo ""
+    echo "The aikido-local-scanner binary is installed at: ${INSTALL_DIR}/${BINARY_NAME}"
+    echo ""
+    echo "Note: Git hooks were not configured. Use without --download-only to set up hooks."
+    exit 0
+fi
 
 # Determine which hooks directory to use
 # If core.hooksPath is already set, use that; otherwise use our default
