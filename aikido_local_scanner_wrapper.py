@@ -60,18 +60,18 @@ def main():
 
         if sys.platform == "win32":
             print(
-                "  PowerShell: irm https://raw.githubusercontent.com/AikidoSec/pre-commit/main/installation-samples/install-global/install-aikido-hook.ps1 | iex",
+                "  PowerShell: irm https://raw.githubusercontent.com/AikidoSec/pre-commit/518945d243beec968f18c8c0c990f3deda084804/installation-samples/install-global/install-aikido-hook.ps1 | % { iex \"& { $_ } -DownloadOnly\" }",
                 file=sys.stderr,
             )
         else:
             print(
-                "  curl -fsSL https://raw.githubusercontent.com/AikidoSec/pre-commit/main/installation-samples/install-global/install-aikido-hook.sh | bash",
+                "  curl -fsSL https://raw.githubusercontent.com/AikidoSec/pre-commit/518945d243beec968f18c8c0c990f3deda084804/installation-samples/install-global/install-aikido-hook.sh | bash -s -- --download-only",
                 file=sys.stderr,
             )
 
         print("", file=sys.stderr)
         print(
-            "Or download manually from: https://help.aikido.dev/code-scanning/local-code-scanning/aikido-secrets-pre-commit-hook",
+            "Or download manually from: https://help.aikido.dev/code-scanning/local-code-scanning/aikido-secrets-pre-commit-hook and place the binary in ~/.local/bin",
             file=sys.stderr,
         )
         sys.exit(1)
