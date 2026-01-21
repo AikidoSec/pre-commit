@@ -1,0 +1,6 @@
+{
+    "name": "Aikido Secrets pre-commit hook",
+    "id": "aikido-secrets-pre-commit-hook-feature",
+    "version": "1.0.0",
+    "description": "The Aikido Secrets pre-commit githook scans your staged code for secrets, passwords and API keys."
+}
