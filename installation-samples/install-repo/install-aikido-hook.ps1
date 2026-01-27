@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$VERSION = "v1.0.116"
+$VERSION = "v1.0.118"
 $BASE_URL = "https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/$VERSION"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".local\bin"
 $HOOK_SCRIPT = '.git\hooks\pre-commit'
@@ -14,9 +14,12 @@ $ARCH = $env:PROCESSOR_ARCHITECTURE
 
 Write-Host "Detected architecture: $ARCH" -ForegroundColor Gray
 
-# Check if architecture is x64
+# Check architecture and set platform
 if ($ARCH -eq "AMD64" -or $ARCH -eq "x64") {
     $PLATFORM = "windows_X86_64"
+}
+elseif ($ARCH -eq "ARM64") {
+    $PLATFORM = "windows_ARM64"
 }
 else {
     Write-Error "Unsupported Windows architecture: $ARCH. Only x64 is supported."
