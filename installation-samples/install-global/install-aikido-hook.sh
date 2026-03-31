@@ -18,7 +18,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-VERSION="v1.0.118"
+VERSION="v1.0.129"
 BASE_URL="https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/${VERSION}"
 INSTALL_DIR="${HOME}/.local/bin"
 GLOBAL_HOOKS_DIR="${HOME}/.git-hooks"

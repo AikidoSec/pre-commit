@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION="v1.0.116"
+VERSION="v1.0.129"
 BASE_URL="https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/${VERSION}"
 INSTALL_DIR="${HOME}/.local/bin"
 HOOK_SCRIPT='.git/hooks/pre-commit'
