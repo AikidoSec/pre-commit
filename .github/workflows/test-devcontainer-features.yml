@@ -1,0 +1,69 @@
+name: "Smoke test dev container features"
+on:
+  pull_request:
+    paths:
+      - "devcontainer-features/**"
+      - ".github/workflows/test-devcontainer-features.yml"
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+
+      # Build a throwaway workspace whose devcontainer.json references the Feature
+      # as a local path. The base image runs as the non-root "vscode" user, which
+      # is exactly the case the global install script gets wrong.
+      - name: Prepare test workspace
+        run: |
+          WS="${RUNNER_TEMP}/aikido-feature-test"
+          mkdir -p "${WS}/.devcontainer"
+          cp -r devcontainer-features/pre-commit-feature "${WS}/.devcontainer/pre-commit-feature"
+          cat > "${WS}/.devcontainer/devcontainer.json" <<'JSON'
+          {
+              "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+              "features": {
+                  "./pre-commit-feature": {}
+              }
+          }
+          JSON
+          echo "WS=${WS}" >> "$GITHUB_ENV"
+
+      - name: Build & start container
+        run: devcontainer up --workspace-folder "${WS}"
+
+      - name: Assert Feature installed correctly for the remote user
+        run: |
+          devcontainer exec --workspace-folder "${WS}" bash -euo pipefail -c '
+            echo "Running assertions as: $(whoami) (uid $(id -u))"
+
+            # 1. We must be the non-root remote user — otherwise this test proves nothing.
+            [ "$(id -u)" -ne 0 ] || { echo "❌ expected a non-root user"; exit 1; }
+
+            # 2. Binary is on PATH, system-wide.
+            command -v aikido-local-scanner >/dev/null || { echo "❌ scanner not on PATH"; exit 1; }
+            [ "$(command -v aikido-local-scanner)" = "/usr/local/bin/aikido-local-scanner" ] \
+              || { echo "❌ scanner not in /usr/local/bin"; exit 1; }
+
+            # 3. The hook is registered for THIS user via system config (the --system fix).
+            hooks_path="$(git config --system --get core.hooksPath || true)"
+            [ "$hooks_path" = "/etc/git-hooks" ] \
+              || { echo "❌ system core.hooksPath is \"$hooks_path\", expected /etc/git-hooks"; exit 1; }
+            [ -x /etc/git-hooks/pre-commit ] || { echo "❌ pre-commit hook missing or not executable"; exit 1; }
+
+            # 4. End-to-end: the hook actually fires (and passes) on a real commit as this user.
+            repo="$(mktemp -d)"; cd "$repo"; git init -q
+            git config user.email test@example.com; git config user.name Test
+            git commit -q --allow-empty -m "smoke test" \
+              || { echo "❌ commit failed — pre-commit hook errored"; exit 1; }
+
+            echo "✅ Feature installed and hook active for the remote user."
+          '
