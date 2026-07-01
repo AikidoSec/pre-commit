@@ -1,4 +1,4 @@
-name: "Release dev container features & Generate Documentation"
+name: "Release dev container features"
 on:
   workflow_dispatch:
 
@@ -10,12 +10,6 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-
-      # This step will copy our existing install script for the global installation to the devcontainer feature folder to prevent duplication of this script in this repository.
-      # This follows the pattern of the devcontainer feature specification: https://containers.dev/implementors/features-distribution/#local-feature-development
-      - name: Copy install script for devcontainer feature
-        run: cp installation-samples/install-global/install-aikido-hook.sh devcontainer-features/pre-commit-feature/install.sh
-
       - name: "Publish Features"
         uses: devcontainers/action@1082abd5d2bf3a11abccba70eef98df068277772 # v1.4.3
         with:
