@@ -39,6 +39,12 @@ The hook will run automatically before each commit in any Git repository to scan
 
 Once installed, the hook will automatically run for all Git repositories on your system. The hook script detects the repository root dynamically, so it works regardless of where you run `git commit`.
 
+## Interaction with repository-local hooks
+
+Git treats `core.hooksPath` as a **replacement** for `.git/hooks`, not an addition to it. Once it is set, Git stops looking in `.git/hooks` entirely for every repository on the machine.
+
+- **`pre-commit` is chained.** The installed hook looks up the repository's own `.git/hooks/pre-commit` and runs it first, then runs the Aikido scan. Repository-local pre-commit hooks — including those installed by the [pre-commit framework](https://pre-commit.com) — keep working. A local hook that fails blocks the commit and the scan does not run. Because the local hook runs first, any file it reformats or re-stages is what the scan sees.
+
 ## Uninstalling
 
 To uninstall the global hook:

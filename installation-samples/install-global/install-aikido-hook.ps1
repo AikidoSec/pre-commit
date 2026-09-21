@@ -11,6 +11,10 @@ $BASE_URL = "https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/$VERSION"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".local\bin"
 $GLOBAL_HOOKS_DIR = Join-Path $env:USERPROFILE ".git-hooks"
 
+# Version of the hook snippet this script writes. Bumping it makes the installer
+# replace an older snippet instead of leaving it in place.
+$HOOK_VERSION = "2"
+
 Write-Host "Detecting platform and architecture..." -ForegroundColor Cyan
 
 # Detect architecture using environment variable
@@ -101,6 +105,9 @@ try {
         $globalHooksDirUnix = $GLOBAL_HOOKS_DIR -replace '\\', '/'
         git config --global core.hooksPath $globalHooksDirUnix
         Write-Host "Configured git to use global hooks from: $GLOBAL_HOOKS_DIR" -ForegroundColor Green
+        Write-Host "Note: core.hooksPath replaces .git/hooks for every repository on this" -ForegroundColor Yellow
+        Write-Host "machine. The pre-commit hook installed below calls each repository's own" -ForegroundColor Yellow
+        Write-Host "pre-commit hook, so those keep working." -ForegroundColor Yellow
     }
 
     # Create hooks directory if it doesn't exist
@@ -117,6 +124,14 @@ try {
     # Create aikido snippet
     $aikidoSnippet = @"
 # --- Aikido local scanner ---
+# aikido-hook-version: $HOOK_VERSION
+# Run the repository's own pre-commit hook first, so a local hook that formats
+# or re-stages files does so before the aikido scan.
+REPO_GIT_DIR="`$(git rev-parse --git-common-dir 2>/dev/null)"
+REPO_PRE_COMMIT_HOOK="`${REPO_GIT_DIR:-.git}/hooks/pre-commit"
+if [ -x "`$REPO_PRE_COMMIT_HOOK" ]; then
+    "`$REPO_PRE_COMMIT_HOOK" "`$@" || exit `$?
+fi
 [ -x "$destBinaryUnix" ] || { echo "Aikido Local Scanner is missing. Find install instructions at https://help.aikido.dev/code-scanning/local-code-scanning/aikido-secrets-pre-commit-hook"; exit 1; }
 REPO_ROOT="`$(git rev-parse --show-toplevel)"
 "$destBinaryUnix" pre-commit-scan "`$REPO_ROOT"
@@ -129,8 +144,24 @@ REPO_ROOT="`$(git rev-parse --show-toplevel)"
         
         # Check if aikido scanner is already in the hook
         if ($existingContent -match "Aikido local scanner") {
-            Write-Host "Aikido scanner already exists in global pre-commit hook. No changes made." -ForegroundColor Yellow
-            exit 0
+            $versionMarker = '(?m)^# aikido-hook-version: ' + [regex]::Escape($HOOK_VERSION) + '$'
+            if ($existingContent -match $versionMarker) {
+                Write-Host "Aikido scanner already present and up to date. No changes made." -ForegroundColor Yellow
+                exit 0
+            }
+
+            Write-Host "Replacing Aikido pre-commit snippet..." -ForegroundColor Cyan
+
+            $hasStartMarker = ($existingContent -match '(?m)^# --- Aikido local scanner ---\r?$')
+            $hasEndMarker = ($existingContent -match '(?m)^# --- End Aikido local scanner ---\r?$')
+            if (-not $hasStartMarker -or -not $hasEndMarker) {
+                Write-Host "The Aikido markers in $HOOK_SCRIPT are incomplete." -ForegroundColor Red
+                Write-Host "Aborting so nothing is destroyed. Clean up the hook manually and re-run." -ForegroundColor Red
+                exit 1
+            }
+
+            $pattern = '(?s)# --- Aikido local scanner ---.*?# --- End Aikido local scanner ---\r?\n?'
+            $existingContent = $existingContent -replace $pattern, ''
         }
         
         # Append aikido scanner to existing hook

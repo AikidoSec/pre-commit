@@ -23,6 +23,10 @@ BASE_URL="https://aikido-local-scanner.s3.eu-west-1.amazonaws.com/${VERSION}"
 INSTALL_DIR="${HOME}/.local/bin"
 GLOBAL_HOOKS_DIR="${HOME}/.git-hooks"
 
+# Version of the hook snippet this script writes. Bumping it makes the installer
+# replace an older snippet instead of leaving it in place.
+HOOK_VERSION="2"
+
 echo "🔍 Detecting platform and architecture..."
 
 # Detect OS / Arch
@@ -106,6 +110,9 @@ else
     # Configure git to use global hooks directory
     git config --global core.hooksPath "${GLOBAL_HOOKS_DIR}"
     echo "✅ Configured git to use global hooks from: ${GLOBAL_HOOKS_DIR}"
+    echo "   Note: core.hooksPath replaces .git/hooks for every repository on this"
+    echo "   machine. The pre-commit hook installed below calls each repository's own"
+    echo "   pre-commit hook, so those keep working."
 fi
 
 # Create hooks directory if it doesn't exist
@@ -114,6 +121,14 @@ HOOK_SCRIPT="${ACTUAL_HOOKS_DIR}/pre-commit"
 
 AIKIDO_SNIPPET=$(cat << EOF
 # --- Aikido local scanner ---
+# aikido-hook-version: ${HOOK_VERSION}
+# Run the repository's own pre-commit hook first, so a local hook that formats
+# or re-stages files does so before the aikido scan.
+REPO_GIT_DIR="\$(git rev-parse --git-common-dir 2>/dev/null)"
+REPO_PRE_COMMIT_HOOK="\${REPO_GIT_DIR:-.git}/hooks/pre-commit"
+if [ -x "\$REPO_PRE_COMMIT_HOOK" ]; then
+    "\$REPO_PRE_COMMIT_HOOK" "\$@" || exit \$?
+fi
 [ -x "${INSTALL_DIR}/${BINARY_NAME}" ] || { echo "Aikido Local Scanner is missing. Find install instructions at https://help.aikido.dev/code-scanning/local-code-scanning/aikido-secrets-pre-commit-hook"; exit 1; }
 REPO_ROOT="\$(git rev-parse --show-toplevel)"
 "${INSTALL_DIR}/${BINARY_NAME}" pre-commit-scan "\$REPO_ROOT"
@@ -139,8 +154,26 @@ fi
 
 # Hook exists → check if Aikido is already inside
 if grep -q "Aikido local scanner" "${HOOK_SCRIPT}"; then
-    echo "ℹ️  Aikido scanner already present in global pre-commit hook. No changes made."
-    exit 0
+    if grep -q "^# aikido-hook-version: ${HOOK_VERSION}$" "${HOOK_SCRIPT}"; then
+        echo "ℹ️  Aikido scanner already present and up to date. No changes made."
+        exit 0
+    fi
+
+    echo "⬆️  Replacing Aikido pre-commit snippet..."
+
+    if ! grep -q "^# --- Aikido local scanner ---$" "${HOOK_SCRIPT}" \
+        || ! grep -q "^# --- End Aikido local scanner ---$" "${HOOK_SCRIPT}"; then
+        echo "❌ The Aikido markers in ${HOOK_SCRIPT} are incomplete." >&2
+        echo "   Aborting so nothing is destroyed. Clean up the hook manually and re-run." >&2
+        exit 1
+    fi
+
+    CLEANED_CONTENT=$(awk '
+        /^# --- Aikido local scanner ---$/ { in_aikido = 1; next }
+        /^# --- End Aikido local scanner ---$/ { in_aikido = 0; next }
+        !in_aikido { print }
+    ' "${HOOK_SCRIPT}")
+    printf '%s\n' "${CLEANED_CONTENT}" > "${HOOK_SCRIPT}"
 fi
 
 # Append Aikido section to existing hook
